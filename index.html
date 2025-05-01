@@ -2,7 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SonicCloud by Reiniscouple</title>
+  <title>SonicCloud — Reiniscouple</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Farcaster Frame meta tags -->
+  <meta property="og:title" content="SonicCloud — Reiniscouple" />
+  <meta property="og:description" content="An interactive artwork that responds to ambient sound. Tap to activate the microphone and interact with the cloud of points." />
+  <meta property="og:image" content="https://soniccloud.vercel.app/cover.jpg" />
+  <meta property="og:url" content="https://sociccloud.vercel.app" />
+  <meta name="fc:frame" content="vNext" />
+  <meta name="fc:frame:button:1" content="Open" />
+  <meta name="fc:frame:post_url" content="https://soniccloud.vercel.app" />
+
   <style>
     html, body {
       margin: 0;
@@ -77,7 +88,7 @@ function setup() {
   noStroke();
   background(0);
 
-  startButton = createButton('Ativar Microfone');
+  startButton = createButton('Activate Mic');
   startButton.style('font-size', '18px');
   startButton.style('padding', '12px 24px');
   startButton.style('border', 'none');
@@ -104,7 +115,6 @@ function startMic() {
 
 function draw() {
   background(0, 40);
-
   if (!micStarted) return;
 
   let spectrum = fft.analyze();
@@ -159,7 +169,7 @@ function windowResized() {
 <footer>
   <div>SonicCloud by Reiniscouple</div>
   <div class="buttons">
-    <a href="https://zora.co/coin/base:0x54f2b677f0dc7b9e4cefb9f1b7959357ceae72a2?referrer=0xED88ec5Ae50dC47049ab85BbFEF98d38346daac4" target="_blank">BUY HERE</a>
+    <a href="https://zora.co/coin/base:0x54f2b677f0dc7b9e4cefb9f1b7959357ceae72a2" target="_blank">BUY HERE</a>
     <a href="https://dexscreener.com/base/0x2e685368582d26E15f8D6d3c4D0307170dF045a1" target="_blank">CHART</a>
   </div>
 </footer>
