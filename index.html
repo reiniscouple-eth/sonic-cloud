@@ -90,53 +90,95 @@
 
   <!-- Script p5.js principal -->
   <script>
-    let mic;
-    let micButton;
+    let mic, fft;
+let particles = [];
+let micStarted = false;
+let startButton;
 
-    function setup() {
-      // Cria o canvas em tela cheia e o adiciona dentro do container #sketch-container
-      let cnv = createCanvas(windowWidth, windowHeight);
-      cnv.parent("sketch-container");
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  noStroke();
+  background(0);
 
-      // Inicializa entrada de áudio (microfone)
-      mic = new p5.AudioIn();
+  // Cria botão de início
+  startButton = createButton('Ativar Microfone');
+  startButton.style('font-size', '18px');
+  startButton.style('padding', '12px 24px');
+  startButton.style('border', 'none');
+  startButton.style('border-radius', '8px');
+  startButton.style('background', '#00ff88');
+  startButton.style('color', '#000');
+  startButton.position(width / 2 - 80, height / 2 - 25);
+  startButton.mousePressed(startMic);
 
-      // Seleciona o botão "Activate Mic" existente no HTML e define seu parent para o container
-      micButton = select("#activate-mic-btn");
-      micButton.parent("sketch-container");
+  // Cria as partículas desde o início
+  for (let i = 0; i < 4000; i++) {
+    particles.push(new Particle());
+  }
+}
 
-      // Ao clicar no botão, ativar o microfone e esconder o botão
-      micButton.mousePressed(() => {
-        // Necessário para habilitar contexto de áudio no browser
-        if (getAudioContext().state !== 'running') {
-          getAudioContext().resume();
-        }
-        mic.start();
-        // Esconde o botão após ativação para não cobrir a tela (opcional)
-        micButton.hide();
-      });
-    }
+function startMic() {
+  mic = new p5.AudioIn();
+  mic.start(() => {
+    fft = new p5.FFT();
+    fft.setInput(mic);
+    micStarted = true;
+    startButton.hide();
+  });
+}
 
-    function draw() {
-      // Desenha o fundo (preserva a arte visual original aqui, se houver)
-      background(0);
+function draw() {
+  background(0, 40);
 
-      // Exemplo simples de visualização: desenha um círculo proporcional ao volume do microfone
-      if (mic && mic.enabled) {
-        let volume = mic.getLevel();
-        let diametro = map(volume, 0, 1, 50, width);  // mapeia o volume para um diâmetro de 50px até largura da tela
-        fill(255);
-        noStroke();
-        ellipse(width/2, height/2, diametro, diametro);
-      }
+  if (!micStarted) return;
 
-      // [Coloque aqui a lógica de desenho original da arte interativa, se diferente do exemplo acima]
-    }
+  let spectrum = fft.analyze();
+  let low = fft.getEnergy("bass");
+  let high = fft.getEnergy("treble");
 
-    function windowResized() {
-      // Mantém o canvas em tela cheia se a janela for redimensionada
-      resizeCanvas(windowWidth, windowHeight);
-    }
+  let expansion = map(low + high, 0, 255 * 2, 0.5, 3);
+
+  for (let p of particles) {
+    p.update(expansion, low, high);
+    p.display();
+  }
+}
+
+class Particle {
+  constructor() {
+    this.baseX = random(-100, 100);
+    this.baseY = random(-100, 100);
+    this.size = random(0.5, 2);
+    this.color = color(255);
+  }
+
+  update(expansion, low, high) {
+    let t = millis() / 1000;
+    let spread = expansion * 6;
+    let x = this.baseX * spread + sin(t + this.baseX * 0.1) * 2;
+    let y = this.baseY * spread + cos(t + this.baseY * 0.1) * 2;
+
+    let colorRatio = high / (low + high + 1);
+    let blue = lerp(0, 255, colorRatio);
+    let green = lerp(255, 0, colorRatio);
+    this.color = color(0, green, blue);
+
+    this.x = width / 2 + x;
+    this.y = height / 2 + y;
+  }
+
+  display() {
+    fill(this.color);
+    ellipse(this.x, this.y, this.size);
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  if (startButton) {
+    startButton.position(width / 2 - 80, height / 2 - 25);
+  }
+}
   </script>
 
 </body>
