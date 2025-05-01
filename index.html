@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SonicCloud by Reiniscouple</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+      height: 100%;
+      font-family: sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: black;
+      color: white;
+      font-size: 1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      box-sizing: border-box;
+      z-index: 10;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    footer a {
+      background-color: white;
+      color: black;
+      padding: 10px 18px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 1em;
+      white-space: nowrap;
+    }
+    footer a:hover {
+      background-color: #ddd;
+    }
+    @media (max-width: 600px) {
+      footer {
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 1.1em;
+      }
+      footer a {
+        font-size: 1.1em;
+        padding: 12px 22px;
+      }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+
+<script>
+let mic, fft;
+let particles = [];
+let micStarted = false;
+let startButton;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  noStroke();
+  background(0);
+
+  startButton = createButton('Ativar Microfone');
+  startButton.style('font-size', '18px');
+  startButton.style('padding', '12px 24px');
+  startButton.style('border', 'none');
+  startButton.style('border-radius', '8px');
+  startButton.style('background', '#00ff88');
+  startButton.style('color', '#000');
+  startButton.position(width / 2 - 80, height / 2 - 25);
+  startButton.mousePressed(startMic);
+
+  for (let i = 0; i < 26000; i++) {
+    particles.push(new Particle());
+  }
+}
+
+function startMic() {
+  mic = new p5.AudioIn();
+  mic.start(() => {
+    fft = new p5.FFT();
+    fft.setInput(mic);
+    micStarted = true;
+    startButton.hide();
+  });
+}
+
+function draw() {
+  background(0, 40);
+
+  if (!micStarted) return;
+
+  let spectrum = fft.analyze();
+  let low = fft.getEnergy("bass");
+  let high = fft.getEnergy("treble");
+
+  let expansion = map(low + high, 0, 255 * 2, 0.5, 3);
+
+  for (let p of particles) {
+    p.update(expansion, low, high);
+    p.display();
+  }
+}
+
+class Particle {
+  constructor() {
+    this.baseX = random(-100, 100);
+    this.baseY = random(-100, 100);
+    this.size = random(0.5, 2);
+    this.color = color(255);
+  }
+
+  update(expansion, low, high) {
+    let t = millis() / 1000;
+    let spread = expansion * 6;
+    let x = this.baseX * spread + sin(t + this.baseX * 0.1) * 2;
+    let y = this.baseY * spread + cos(t + this.baseY * 0.1) * 2;
+
+    let colorRatio = high / (low + high + 1);
+    let blue = lerp(0, 255, colorRatio);
+    let green = lerp(255, 0, colorRatio);
+    this.color = color(0, green, blue);
+
+    this.x = width / 2 + x;
+    this.y = height / 2 + y;
+  }
+
+  display() {
+    fill(this.color);
+    ellipse(this.x, this.y, this.size);
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  if (startButton) {
+    startButton.position(width / 2 - 80, height / 2 - 25);
+  }
+}
+</script>
+
+<footer>
+  <div>SonicCloud by Reiniscouple</div>
+  <div class="buttons">
+    <a href="https://zora.co/coin/base:0x54f2b677f0dc7b9e4cefb9f1b7959357ceae72a2?referrer=0xED88ec5Ae50dC47049ab85BbFEF98d38346daac4" target="_blank">BUY HERE</a>
+    <a href="https://dexscreener.com/base/0x2e685368582d26E15f8D6d3c4D0307170dF045a1" target="_blank">CHART</a>
+  </div>
+</footer>
+
+</body>
+</html>
