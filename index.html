@@ -90,6 +90,7 @@
     }
 
     function startMic() {
+      userStartAudio(); // Ativa o contexto de áudio
       mic = new p5.AudioIn();
       mic.start(() => {
         fft = new p5.FFT();
@@ -106,6 +107,9 @@
       let spectrum = fft.analyze();
       let low = fft.getEnergy("bass");
       let high = fft.getEnergy("treble");
+
+      console.log("Low:", low, "High:", high); // Debug: mostra energia captada
+
       let expansion = map(low + high, 0, 255 * 2, 0.5, 3);
 
       for (let p of particles) {
@@ -145,9 +149,6 @@
 
     function windowResized() {
       resizeCanvas(windowWidth, windowHeight);
-      if (startButton) {
-        startButton.position(width / 2 - 80, height / 2 - 25);
-      }
     }
   </script>
 </body>
