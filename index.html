@@ -3,183 +3,152 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SonicCloud</title>
-  <!-- Meta tags adicionais (ex: descrição) -->
-  <meta name="description" content="SonicCloud - Arte interativa de áudio com p5.js" />
+  <title>Nova Obra</title>
+  <meta name="description" content="Nova Obra - Interactive audio-reactive artwork by Reiniscouple" />
 
-  <!-- Estilos CSS -->
   <style>
-    /* Reset básico e estilos globais */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      background: #000;           /* Fundo preto (preservando estilo original se diferente) */
-      color: #fff;               /* Texto padrão branco para contraste no fundo escuro */
-      font-family: sans-serif;   /* Fonte base (ajuste se houver fonte personalizada) */
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
     }
-    /* Container para o sketch p5 */
+
     #sketch-container {
       position: relative;
       width: 100%;
-      height: 100vh;  /* Ocupa a altura total da janela para exibir o canvas em tela cheia */
+      height: 100vh;
       overflow: hidden;
     }
-    /* Certifica que o canvas preenche o container sem sobras de rolagem */
+
     #sketch-container canvas {
       display: block;
       position: absolute;
       top: 0;
       left: 0;
     }
-    /* Estilos do botão "Activate Mic" */
-    #activate-mic-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 999;
-      /* Estilos visuais originais do botão: */
-      padding: 12px 24px;
-      font-size: 16px;
-      border: 2px solid #fff;
-      background: transparent;
-      color: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-      text-transform: uppercase;  /* Exemplo: texto em maiúsculas */
-      letter-spacing: 1px;
-    }
-    /* Efeito de hover do botão (opcional, conforme estilo original) */
-    #activate-mic-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    /* Estilo do rodapé */
+
     footer {
       text-align: center;
       padding: 20px;
-      background: #111;   /* Fundo ligeiramente diferenciado do corpo */
+      background: #111;
       color: #aaa;
     }
   </style>
 </head>
 <body>
 
-  <!-- Contêiner para o canvas e botão da arte interativa -->
-  <div id="sketch-container">
-    <!-- Botão "Activate Mic" centralizado dentro do container -->
-    <button id="activate-mic-btn">Activate Mic</button>
-  </div>
+  <div id="sketch-container"></div>
 
-  <!-- Footer permanece fora do container, abaixo da arte interativa -->
   <footer>
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 16px 24px;">
-    <div style="color: white; font-size: 1em; font-weight: 500;">
-      Pulse by Reiniscouple
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 16px 24px;">
+      <div style="color: white; font-size: 1em; font-weight: 500;">
+        Nova Obra by Reiniscouple
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="#" target="_blank" style="background-color: white; color: black; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold;">BUY</a>
+        <a href="#" target="_blank" style="background-color: white; color: black; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold;">CHART</a>
+      </div>
     </div>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <a href="#" target="_blank" style="background-color: white; color: black; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold;">BUY</a>
-      <a href="#" target="_blank" style="background-color: white; color: black; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold;">CHART</a>
-    </div>
-  </div>
-</footer>
+  </footer>
 
-  <!-- Inclusão das bibliotecas p5.js e p5.sound -->
+  <!-- p5.js e p5.sound -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
 
-  <!-- Script p5.js principal -->
   <script>
     let mic, fft;
-let particles = [];
-let micStarted = false;
-let startButton;
+    let particles = [];
+    let micStarted = false;
+    let startButton;
 
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  noStroke();
-  background(0);
+    function setup() {
+      let cnv = createCanvas(windowWidth, windowHeight);
+      cnv.parent('sketch-container');
+      noStroke();
+      background(0);
 
-  // Cria botão de início
-  startButton = createButton('Ativar Microfone');
-  startButton.style('font-size', '18px');
-  startButton.style('padding', '12px 24px');
-  startButton.style('border', 'none');
-  startButton.style('border-radius', '8px');
-  startButton.style('background', '#00ff88');
-  startButton.style('color', '#000');
-  startButton.position(width / 2 - 80, height / 2 - 25);
-  startButton.mousePressed(startMic);
+      startButton = createButton('Ativar Microfone');
+      startButton.style('font-size', '18px');
+      startButton.style('padding', '12px 24px');
+      startButton.style('border', 'none');
+      startButton.style('border-radius', '8px');
+      startButton.style('background', '#00ff88');
+      startButton.style('color', '#000');
+      startButton.style('position', 'absolute');
+      startButton.style('left', '50%');
+      startButton.style('top', '50%');
+      startButton.style('transform', 'translate(-50%, -50%)');
+      startButton.parent('sketch-container');
+      startButton.mousePressed(startMic);
 
-  // Cria as partículas desde o início
-  for (let i = 0; i < 4000; i++) {
-    particles.push(new Particle());
-  }
-}
+      for (let i = 0; i < 4000; i++) {
+        particles.push(new Particle());
+      }
+    }
 
-function startMic() {
-  mic = new p5.AudioIn();
-  mic.start(() => {
-    fft = new p5.FFT();
-    fft.setInput(mic);
-    micStarted = true;
-    startButton.hide();
-  });
-}
+    function startMic() {
+      mic = new p5.AudioIn();
+      mic.start(() => {
+        fft = new p5.FFT();
+        fft.setInput(mic);
+        micStarted = true;
+        startButton.hide();
+      });
+    }
 
-function draw() {
-  background(0, 40);
+    function draw() {
+      background(0, 40);
+      if (!micStarted) return;
 
-  if (!micStarted) return;
+      let spectrum = fft.analyze();
+      let low = fft.getEnergy("bass");
+      let high = fft.getEnergy("treble");
+      let expansion = map(low + high, 0, 255 * 2, 0.5, 3);
 
-  let spectrum = fft.analyze();
-  let low = fft.getEnergy("bass");
-  let high = fft.getEnergy("treble");
+      for (let p of particles) {
+        p.update(expansion, low, high);
+        p.display();
+      }
+    }
 
-  let expansion = map(low + high, 0, 255 * 2, 0.5, 3);
+    class Particle {
+      constructor() {
+        this.baseX = random(-100, 100);
+        this.baseY = random(-100, 100);
+        this.size = random(0.5, 2);
+        this.color = color(255);
+      }
 
-  for (let p of particles) {
-    p.update(expansion, low, high);
-    p.display();
-  }
-}
+      update(expansion, low, high) {
+        let t = millis() / 1000;
+        let spread = expansion * 6;
+        let x = this.baseX * spread + sin(t + this.baseX * 0.1) * 2;
+        let y = this.baseY * spread + cos(t + this.baseY * 0.1) * 2;
 
-class Particle {
-  constructor() {
-    this.baseX = random(-100, 100);
-    this.baseY = random(-100, 100);
-    this.size = random(0.5, 2);
-    this.color = color(255);
-  }
+        let colorRatio = high / (low + high + 1);
+        let blue = lerp(0, 255, colorRatio);
+        let green = lerp(255, 0, colorRatio);
+        this.color = color(0, green, blue);
 
-  update(expansion, low, high) {
-    let t = millis() / 1000;
-    let spread = expansion * 6;
-    let x = this.baseX * spread + sin(t + this.baseX * 0.1) * 2;
-    let y = this.baseY * spread + cos(t + this.baseY * 0.1) * 2;
+        this.x = width / 2 + x;
+        this.y = height / 2 + y;
+      }
 
-    let colorRatio = high / (low + high + 1);
-    let blue = lerp(0, 255, colorRatio);
-    let green = lerp(255, 0, colorRatio);
-    this.color = color(0, green, blue);
+      display() {
+        fill(this.color);
+        ellipse(this.x, this.y, this.size);
+      }
+    }
 
-    this.x = width / 2 + x;
-    this.y = height / 2 + y;
-  }
-
-  display() {
-    fill(this.color);
-    ellipse(this.x, this.y, this.size);
-  }
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  if (startButton) {
-    startButton.position(width / 2 - 80, height / 2 - 25);
-  }
-}
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      if (startButton) {
+        startButton.position(width / 2 - 80, height / 2 - 25);
+      }
+    }
   </script>
-
 </body>
 </html>
